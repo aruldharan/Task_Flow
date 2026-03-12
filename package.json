@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
     "build": "npm run build --prefix frontend && npm run build --prefix backend",
+    "build:backend": "npm install --prefix backend && npm run build --prefix backend",
+    "build:frontend": "npm install --prefix frontend && npm run build --prefix frontend",
     "install:all": "npm install --prefix frontend && npm install --prefix backend",
     "generate": "npm run generate --prefix backend",
     "db:push": "npm run db:push --prefix backend"
