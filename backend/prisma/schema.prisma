@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  completed
+  archived
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum RecurrenceType {
+  daily
+  weekly
+  monthly
+  yearly
+}
+
+enum AppRole {
+  owner
+  admin
+  member
+  viewer
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  profile       Profile?
+  projects      Project[]
+  tasks         Task[]
+  tags          Tag[]
+  comments      Comment[]
+  timeLogs      TimeLog[]
+  activityLogs  ActivityLog[]
+  notifications Notification[]
+  habitCompletions HabitCompletion[]
+  habits        Habit[]
+  dailyNotes    DailyNote[]
+  goals         Goal[]
+  userRoles     UserRole[]
+
+  @@map("users")
+}
+
+model Profile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid @map("user_id")
+  displayName String?  @map("display_name")
+  avatarUrl   String?  @map("avatar_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Project {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  color       String?  @default("#6366f1")
+  userId      String   @db.Uuid @map("user_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@map("projects")
+}
+
+model Task {
+  id           String          @id @default(uuid()) @db.Uuid
+  title        String
+  description  String?
+  status       TaskStatus      @default(todo)
+  priority     TaskPriority    @default(medium)
+  dueDate      DateTime?       @map("due_date")
+  projectId    String?         @db.Uuid @map("project_id")
+  parentTaskId String?         @db.Uuid @map("parent_task_id")
+  recurrence   RecurrenceType?
+  position     Int             @default(0)
+  pinned       Boolean         @default(false)
+  assignedTo   String?         @db.Uuid @map("assigned_to")
+  userId       String          @db.Uuid @map("user_id")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project    Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  parentTask Task?         @relation("SubTasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subTasks   Task[]        @relation("SubTasks")
+  tags       TaskTag[]
+  comments   Comment[]
+  timeLogs   TimeLog[]
+  attachments TaskAttachment[]
+
+  @@index([userId, status])
+  @@index([projectId])
+  @@index([parentTaskId])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+model Tag {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String
+  color     String?    @default("#8b5cf6")
+  userId    String     @db.Uuid @map("user_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks TaskTag[]
+
+  @@unique([name, userId])
+  @@map("tags")
+}
+
+model TaskTag {
+  taskId String @db.Uuid @map("task_id")
+  tagId  String @db.Uuid @map("tag_id")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+  @@map("task_tags")
+}
+
+model Comment {
+  id        String   @id @default(uuid()) @db.Uuid
+  taskId    String   @db.Uuid @map("task_id")
+  userId    String   @db.Uuid @map("user_id")
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model TimeLog {
+  id              String    @id @default(uuid()) @db.Uuid
+  taskId          String    @db.Uuid @map("task_id")
+  userId          String    @db.Uuid @map("user_id")
+  startedAt       DateTime  @map("started_at")
+  endedAt         DateTime? @map("ended_at")
+  durationSeconds Int?      @map("duration_seconds")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("time_logs")
+}
+
+model TaskAttachment {
+  id          String   @id @default(uuid()) @db.Uuid
+  taskId      String   @db.Uuid @map("task_id")
+  userId      String   @db.Uuid @map("user_id")
+  fileName    String   @map("file_name")
+  fileSize    Int      @default(0) @map("file_size")
+  fileType    String   @default("") @map("file_type")
+  storagePath String   @map("storage_path")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_attachments")
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @db.Uuid @map("entity_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activity_log")
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid @map("user_id")
+  title     String
+  message   String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Habit {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  color     String?
+  icon      String?
+  userId    String    @db.Uuid @map("user_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completions HabitCompletion[]
+
+  @@map("habits")
+}
+
+model HabitCompletion {
+  id            String   @id @default(uuid()) @db.Uuid
+  habitId       String   @db.Uuid @map("habit_id")
+  userId        String   @db.Uuid @map("user_id")
+  completedDate DateTime @default(now()) @map("completed_date")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("habit_completions")
+}
+
+model DailyNote {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid @map("user_id")
+  noteDate  DateTime @default(now()) @map("note_date")
+  content   String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("daily_notes")
+}
+
+model Goal {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid @map("user_id")
+  title        String
+  category     String?
+  period       String   @default("weekly")
+  targetValue  Float    @default(0) @map("target_value")
+  currentValue Float    @default(0) @map("current_value")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
+
+model UserRole {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid @map("user_id")
+  role      AppRole  @default(member)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_roles")
+}
