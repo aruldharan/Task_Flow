@@ -66,8 +66,15 @@ const AppRoutes = () => (
   </Routes>
 );
 
-const App = () => (
-  <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}>
+const App = () => {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  console.log("Google Client ID present:", !!clientId);
+  if (clientId) {
+    console.log("Client ID prefix:", clientId.substring(0, 10) + "...");
+  }
+
+  return (
+    <GoogleOAuthProvider clientId={clientId ?? ""}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -85,5 +92,6 @@ const App = () => (
     </ThemeProvider>
   </GoogleOAuthProvider>
 );
+};
 
 export default App;

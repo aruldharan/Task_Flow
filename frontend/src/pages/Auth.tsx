@@ -134,6 +134,11 @@ const Auth = () => {
                     onError={() => toast.error("Google login failed")}
                     useOneTap
                   />
+                  {!import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+                    <p className="text-[10px] text-destructive font-bold bg-destructive/10 px-2 py-1 rounded-md">
+                      ❌ Google Client ID not detected in build
+                    </p>
+                  )}
                   {googleLoading && <p className="text-[10px] text-muted-foreground animate-pulse">Authenticating...</p>}
                 </div>
 
