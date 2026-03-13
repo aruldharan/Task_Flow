@@ -57,20 +57,35 @@ const AppRoutes = () => (
       <Route path="/project/:projectId" element={<ProjectView />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/focus" element={<FocusMode />} />
-{/*      <Route path="/ai" element={<AISuggestions />} /> */}
       <Route path="/timeline" element={<Timeline />} />
-{/*      <Route path="/workflows" element={<Workflows />} /> */}
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-              <AuthProvider>
-                <AppRoutes />
-              </AuthProvider>
-            </BrowserRouter>
-          </AccentColorInit>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
-  </GoogleOAuthProvider>
+      <Route path="/reports" element={<Reports />} />
+    </Route>
+    <Route path="*" element={<NotFound />} />
+  </Routes>
 );
+
+const App = () => {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  return (
+    <GoogleOAuthProvider clientId={clientId ?? ""}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AccentColorInit>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <AuthProvider>
+                  <AppRoutes />
+                </AuthProvider>
+              </BrowserRouter>
+            </AccentColorInit>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </GoogleOAuthProvider>
+  );
 };
 
 export default App;
