@@ -52,9 +52,9 @@ const Dashboard = () => {
     else if (hour >= 17 && hour < 21) text = "Good evening";
     else if (hour >= 21 || hour < 5) text = "Good night";
     
-    const name = profile?.display_name?.split(" ")[0] || "there";
+    const name = profile?.display_name?.split(" ")[0] || user?.display_name?.split(" ")[0] || "there";
     return `${text}, ${name}`;
-  }, [profile]);
+  }, [profile, user]);
 
   const stats = [
     { label: "To Do", value: todoCount, icon: Target, color: "text-primary", bg: "bg-primary/10", ring: "ring-primary/20" },

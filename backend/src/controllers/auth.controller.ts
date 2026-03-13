@@ -37,7 +37,7 @@ export const signup = async (req: Request, res: Response) => {
     });
 
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
-    res.json({ token, user: { id: user.id, email: user.email, displayName: (user.profile as any)?.displayName } });
+    res.json({ token, user: { id: user.id, email: user.email, display_name: (user.profile as any)?.displayName } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -57,7 +57,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
-    res.json({ token, user: { id: user.id, email: user.email, displayName: (user.profile as any)?.displayName } });
+    res.json({ token, user: { id: user.id, email: user.email, display_name: (user.profile as any)?.displayName } });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -79,7 +79,7 @@ export const me = async (req: Request, res: Response) => {
       user: { 
         id: user.id, 
         email: user.email, 
-        displayName: (user.profile as any)?.displayName 
+        display_name: (user.profile as any)?.displayName 
       } 
     });
   } catch (err) {

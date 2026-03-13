@@ -32,7 +32,7 @@ export const auth = {
     const res = await fetch(`${API_BASE}/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, displayName }),
+      body: JSON.stringify({ email, password, display_name: displayName }),
     });
     const result = await handleResponse<{ token: string; user: LocalUser }>(res);
     if (result.data?.token) {
@@ -136,5 +136,5 @@ export const api = {
 export interface LocalUser {
   id: string;
   email: string;
-  displayName?: string;
+  display_name?: string;
 }

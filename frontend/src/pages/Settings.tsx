@@ -28,6 +28,9 @@ const Settings = () => {
   if (profile?.display_name && !nameLoaded) {
     setDisplayName(profile.display_name);
     setNameLoaded(true);
+  } else if (user?.display_name && !nameLoaded) {
+    setDisplayName(user.display_name);
+    setNameLoaded(true);
   }
 
   const handleSaveProfile = () => {
