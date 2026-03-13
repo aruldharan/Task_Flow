@@ -74,11 +74,11 @@ export const auth = {
     return handleResponse<{ user: LocalUser }>(res);
   },
 
-  googleLogin: async (idToken: string) => {
+  googleLogin: async (accessToken: string) => {
     const res = await fetch(`${API_BASE}/auth/google`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idToken }),
+      body: JSON.stringify({ accessToken }),
     });
     const result = await handleResponse<{ token: string; user: LocalUser }>(res);
     if (result.data?.token) {
