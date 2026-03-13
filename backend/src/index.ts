@@ -12,6 +12,9 @@ app.use(cors());
 app.use(express.json());
 
 // --- Routes ---
+app.get("/", (req, res) => {
+  res.json({ message: "TaskFlow API is running", status: "ok" });
+});
 app.use("/api", apiRoutes);
 
 app.listen(PORT, () => {
