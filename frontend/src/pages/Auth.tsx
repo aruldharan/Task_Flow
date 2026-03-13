@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,15 @@ const Auth = () => {
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupName, setSignupName] = useState("");
+
+  useEffect(() => {
+    // Clear all inputs whenever the Auth page is mounted (e.g., after signout)
+    setLoginEmail("");
+    setLoginPassword("");
+    setSignupEmail("");
+    setSignupPassword("");
+    setSignupName("");
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
