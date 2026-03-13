@@ -11,6 +11,7 @@ const router = Router();
 // --- Auth Routes ---
 router.post("/auth/signup", authController.signup);
 router.post("/auth/login", authController.login);
+router.post("/auth/google", authController.googleLogin);
 router.get("/auth/me", authenticate, authController.me);
 
 // --- Profile Routes ---

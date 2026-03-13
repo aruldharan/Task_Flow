@@ -74,6 +74,20 @@ export const auth = {
     return handleResponse<{ user: LocalUser }>(res);
   },
 
+  googleLogin: async (idToken: string) => {
+    const res = await fetch(`${API_BASE}/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+    const result = await handleResponse<{ token: string; user: LocalUser }>(res);
+    if (result.data?.token) {
+      localStorage.setItem("auth_token", result.data.token);
+      localStorage.setItem("auth_user", JSON.stringify(result.data.user));
+    }
+    return result;
+  },
+
   getToken,
 };
 

@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 import prisma from "../prisma.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key-for-local-dev";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -41,6 +44,58 @@ export const signup = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) return res.status(400).json({ message: "ID Token missing" });
+
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) return res.status(400).json({ message: "Invalid Google token" });
+
+    const { email, name, picture } = payload;
+    let user = await prisma.user.findUnique({
+      where: { email },
+      include: { profile: true }
+    });
+
+    if (!user) {
+      const userCount = await prisma.user.count();
+      const role: "owner" | "member" = userCount === 0 ? "owner" : "member";
+      
+      const passwordHash = await bcrypt.hash(Math.random().toString(36), 10);
+      
+      user = await prisma.user.create({
+        data: {
+          email,
+          passwordHash,
+          profile: {
+            create: {
+              displayName: name || email.split("@")[0],
+              avatarUrl: picture,
+            }
+          },
+          userRoles: {
+            create: {
+              role: role
+            }
+          }
+        },
+        include: { profile: true }
+      });
+    }
+
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
+    res.json({ token, user: { id: user.id, email: user.email, display_name: (user.profile as any)?.displayName } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Google auth failed" });
   }
 };
 
